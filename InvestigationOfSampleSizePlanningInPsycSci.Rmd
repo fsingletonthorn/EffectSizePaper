@@ -5,12 +5,36 @@ date: "30 September 2018"
 output: word_document
 ---
 
-All emperical research articles published in the November 2017 to August 2018 issues of Psychological Science were assessed. 
+```{r echo = FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(knitr)
+
+data <- readxl::read_excel("PowerAnalysesPsycSci.xlsx")
+
+# Data cleaning
+data$Justificaiton[data$Justificaiton == "Conservative estimate"] <- "Informal assertion of effect size"
+data$Justificaiton[data$Justificaiton == "Rule of thumb"] <- NA
+data$Justificaiton[data$Justificaiton == "Informal assertion that this will be sufficent"] <- NA
 
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+
+# 
 ```
+
+
+All emperical research articles published in the November 2017 to August 2018 issues of Psychological Science were assessed. The sample size was determined in order to constrain multinomial confidence interval width to a maximum of 20%. 
+
+Of the `r nrow(data)` empirical research articles published during this period `r sum(data$PowerAnalysis==1)`,  `r round(sum(data$PowerAnalysis==1)/nrow(data) * 100)`% of articles, reported a power analysis.
+ 
+Table [1] Justifications for power analysis
+```{r, echo=FALSE}
+kable(table(data$Justificaiton))
+```
+ 
+Of the reported power analyses, the most common approach (used in 9 of 15 cases) was to estimate the true effect of the intervention. Most of these articles used a point estimate from a single previous study (n = 6) to estimate the effect of an intervention. Just two articles reported using effect sizes from meta analyses toward the same goal, and one used the effect size seen in a pilot study. The other articles either reported a sensitivity analysis (showing the effect size that the sample size gave them 80% power to detect, n = 3) in order to justify the obtained sample size, or they used benchmarks from Cohen (1988; n = 2) or did not provide any justification for the effect size used in power analysis (n = 1), making it unclear whether their estimate was of the minimum effect of interest or an estimate of the true effect size of the intervention (see https://osf.io/bmv2d/ for the data behind the above description). 
+
+The sample is not representative of psychology articles in general, but does give an....
+
 
 # InvestigationOfSampleSizePlanningInPsycSci
 
