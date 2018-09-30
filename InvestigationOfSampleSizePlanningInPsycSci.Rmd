@@ -1,0 +1,17 @@
+---
+title: "InvestigationOfSampleSizePlanningInPsycSci"
+author: "Felix Singleton Thorn"
+date: "30 September 2018"
+output: word_document
+---
+
+All emperical research articles published in the November 2017 to August 2018 issues of Psychological Science were assessed. 
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# InvestigationOfSampleSizePlanningInPsycSci
+
+
