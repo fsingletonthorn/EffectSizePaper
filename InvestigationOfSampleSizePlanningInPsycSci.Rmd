@@ -2,12 +2,24 @@
 title: "InvestigationOfSampleSizePlanningInPsycSci"
 author: "Felix Singleton Thorn"
 date: "30 September 2018"
-output: word_document
+output: html_document
 ---
 
 ```{r echo = FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 library(knitr)
+library(MultinomialCI)
+
+# Wilson binomial CI - adapted from https://www.r-bloggers.com/reference-chart-for-precision-of-wilson-binomial-proportion-confidence-interval/
+# n is the absolute number of paricipants, p is the proportion
+WilsonBinCI <-  function(n, p, a=0.05) {
+  z <- qnorm(1-a/2,lower.tail=FALSE)
+  l <- 1/(1+1/n*z^2)*(p + 1/2/n*z^2 + 
+                        z*sqrt(1/n*p*(1-p) + 1/4/n^2*z^2))
+  u <- 1/(1+1/n*z^2)*(p + 1/2/n*z^2 -
+                        z*sqrt(1/n*p*(1-p) + 1/4/n^2*z^2))
+list(estimate = p, lower=l, upper=u)
+}
 
 data <- readxl::read_excel("PowerAnalysesPsycSci.xlsx")
 
@@ -15,23 +27,44 @@ data <- readxl::read_excel("PowerAnalysesPsycSci.xlsx")
 data$Justificaiton[data$Justificaiton == "Conservative estimate"] <- "Informal assertion of effect size"
 data$Justificaiton[data$Justificaiton == "Rule of thumb"] <- NA
 data$Justificaiton[data$Justificaiton == "Informal assertion that this will be sufficent"] <- NA
+data$Justificaiton[data$Justificaiton == "Based sample on single previous study's sample size (no PA)"] <- NA
 
 
+tabJust<-table(data$Justificaiton)
+tabJustForCIS<-table(c(data$Justificaiton, rep("No power analysis reported", sum(is.na(data$Justificaiton)))))
 
+tabCIs <- data.frame(tabJustForCIS, round(multinomialCI(tabJustForCIS, alpha = .05)*100))
+names(tabCIs) <- c("Effect size selection method", 'n', '95_CI_LB', '95_CI_UB')
+
+percent <- function(n,N = nrow(data)) {
+  percent <- round(n/N * 100)
+  print(paste0(percent, "%"))
+}
+
+# wilson CIs on proportion reporting a PA 
+CIonProp <- round(as.numeric(WilsonBinCI(nrow(data), sum(data$PowerAnalysis)/nrow(data))) * 100)
 # 
 ```
 
 
-All emperical research articles published in the November 2017 to August 2018 issues of Psychological Science were assessed. The sample size was determined in order to constrain multinomial confidence interval width to a maximum of 20%. 
+In order to get an initial estimate of the research planning practices common in psychology I assessed the `r nrow(data)` emperical research articles published in the November 2017 to August 2018 issues of Psychological Science. The sample size was determined in order to constrain multinomial confidence interval width to a maximum of 20%. 
 
-Of the `r nrow(data)` empirical research articles published during this period `r sum(data$PowerAnalysis==1)`,  `r round(sum(data$PowerAnalysis==1)/nrow(data) * 100)`% of articles, reported a power analysis.
+Of the `r nrow(data)` empirical research articles published during this period `r sum(data$PowerAnalysis==1)` articles reported a power anlayis,  `r CIonProp[1]`% of sampled articles, wilson score interval [`r paste0(CIonProp[2], "%, ", CIonProp[3])`]. 
+
+Of the reported power analyses, the most common approach was to effect size selection was to use a `r names(tabJust[tabJust==max(tabJust)])` as the effect size, with `r max(tabJust)` articles (`r percent(max(tabJust))`% of articles which reported an power analysis) reporting having done so. 
+
+Pilot study
+
+
+The other articles either reported a sensitivity analysis (showing the effect size that the sample size gave them 80% power to detect, n = 3) in order to justify the obtained sample size, or they used benchmarks from Cohen (1988; n = 2) or did not provide any justification for the effect size used in power analysis (n = 1), making it unclear whether their estimate was of the minimum effect of interest or an estimate of the true effect size of the intervention (see https://osf.io/bmv2d/ for the data behind the above description). X papers adjusted their effect sizes for publication bias. 
  
 Table [1] Justifications for power analysis
 ```{r, echo=FALSE}
-kable(table(data$Justificaiton))
+kable(tabCIs)
+# MultinomialCI::multinomialCI(_
 ```
  
-Of the reported power analyses, the most common approach (used in 9 of 15 cases) was to estimate the true effect of the intervention. Most of these articles used a point estimate from a single previous study (n = 6) to estimate the effect of an intervention. Just two articles reported using effect sizes from meta analyses toward the same goal, and one used the effect size seen in a pilot study. The other articles either reported a sensitivity analysis (showing the effect size that the sample size gave them 80% power to detect, n = 3) in order to justify the obtained sample size, or they used benchmarks from Cohen (1988; n = 2) or did not provide any justification for the effect size used in power analysis (n = 1), making it unclear whether their estimate was of the minimum effect of interest or an estimate of the true effect size of the intervention (see https://osf.io/bmv2d/ for the data behind the above description). 
+Of the reported power analyses, the most common approach (used in ) was to estimate the true effect of the intervention. Most of these articles used a point estimate from a single previous study (n = 6) to estimate the effect of an intervention. Just two articles reported using effect sizes from meta analyses toward the same goal, and one used the effect size seen in a pilot study. The other articles either reported a sensitivity analysis (showing the effect size that the sample size gave them 80% power to detect, n = 3) in order to justify the obtained sample size, or they used benchmarks from Cohen (1988; n = 2) or did not provide any justification for the effect size used in power analysis (n = 1), making it unclear whether their estimate was of the minimum effect of interest or an estimate of the true effect size of the intervention (see https://osf.io/bmv2d/ for the data behind the above description). 
 
 The sample is not representative of psychology articles in general, but does give an....
 
